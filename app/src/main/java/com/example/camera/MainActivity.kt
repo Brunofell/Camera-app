@@ -7,8 +7,11 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
+import android.widget.Button
+import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.AspectRatio
 import androidx.camera.core.Camera
@@ -54,12 +57,17 @@ class MainActivity : AppCompatActivity() {
     private lateinit var camera: Camera
     private lateinit var cameraSelector: CameraSelector
     private var lensFacing = CameraSelector.LENS_FACING_BACK
-
+    // Declare a ImageView
+    private lateinit var capturedImageView: ImageView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(mainBinding.root)
+
+        // Inicialize a ImageView
+        capturedImageView = findViewById(R.id.capturedImageView)
+
         if (checkMultiplePermission()) {
             startCamera()
         }
@@ -242,11 +250,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun takePhoto() {
-
+        // Configurações para salvar a imagem
         val imageFolder = File(
-            Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_PICTURES
-            ), "Images"
+            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
+            "Images"
         )
         if (!imageFolder.exists()) {
             imageFolder.mkdir()
@@ -256,13 +263,14 @@ class MainActivity : AppCompatActivity() {
             .format(System.currentTimeMillis()) + ".jpg"
 
         val contentValues = ContentValues().apply {
-            put(MediaStore.Images.Media.DISPLAY_NAME,fileName)
-            put(MediaStore.Images.Media.MIME_TYPE,"image/jpeg")
-            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.P){
-                put(MediaStore.Images.Media.RELATIVE_PATH,"Pictures/Images")
+            put(MediaStore.Images.Media.DISPLAY_NAME, fileName)
+            put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
+            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.P) {
+                put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/Images")
             }
         }
 
+        // Opções de saída para a imagem capturada
         val metadata = ImageCapture.Metadata().apply {
             isReversedHorizontal = (lensFacing == CameraSelector.LENS_FACING_FRONT)
         }
@@ -273,18 +281,45 @@ class MainActivity : AppCompatActivity() {
                     MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
                     contentValues
                 ).setMetadata(metadata).build()
-            }else{
+            } else {
                 val imageFile = File(imageFolder, fileName)
                 OutputFileOptions.Builder(imageFile)
                     .setMetadata(metadata).build()
             }
 
+        // Captura da imagem
         imageCapture.takePicture(
             outputOption,
             ContextCompat.getMainExecutor(this),
             object : ImageCapture.OnImageSavedCallback {
                 override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
-                    val message = "Photo Capture Succeeded: ${outputFileResults.savedUri}"
+                    val savedUri = outputFileResults.savedUri
+                    savedUri?.let {
+                        // Inflar o layout da visualização em miniatura
+                        val previewView = layoutInflater.inflate(R.layout.layout_preview_image, null)
+                        val previewImageView = previewView.findViewById<ImageView>(R.id.previewImageView)
+                        val closePreviewButton = previewView.findViewById<Button>(R.id.closePreviewButton)
+
+                        // Exibir a imagem capturada na ImageView da visualização em miniatura
+                        previewImageView.setImageURI(savedUri)
+
+                        // Criar um AlertDialog para exibir a visualização em miniatura
+                        val dialog = AlertDialog.Builder(this@MainActivity)
+                            .setView(previewView)
+                            .setCancelable(false)
+                            .create()
+
+                        // Definir o comportamento do botão de fechar
+                        closePreviewButton.setOnClickListener {
+                            dialog.dismiss()
+                        }
+
+                        // Exibir o AlertDialog com a visualização em miniatura
+                        dialog.show()
+                    }
+
+                    // Exibir uma mensagem informando que a captura foi bem-sucedida
+                    val message = "Photo Capture Succeeded: $savedUri"
                     Toast.makeText(
                         this@MainActivity,
                         message,
@@ -293,6 +328,7 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 override fun onError(exception: ImageCaptureException) {
+                    // Exibir uma mensagem em caso de erro na captura da imagem
                     Toast.makeText(
                         this@MainActivity,
                         exception.message.toString(),
@@ -303,6 +339,8 @@ class MainActivity : AppCompatActivity() {
             }
         )
     }
+
+
 
 }
 
