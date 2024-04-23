@@ -7,8 +7,12 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
+import android.view.View
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.ImageView
+import android.widget.Spinner
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
@@ -87,11 +91,62 @@ class MainActivity : AppCompatActivity() {
             setFlashIcon(camera)
         }
 
-//        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-//            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-//            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-//            insets
-//        } ???
+        // filtros
+
+        // Referência ao botão "Filtros"
+        val filtersButton: Button = findViewById(R.id.filtersButton)
+        // Referência ao Spinner de filtros
+        val filtersSpinner: Spinner = findViewById(R.id.filtersSpinner)
+
+        // Lista de opções de filtro
+        val filterOptions = listOf("Sem filtro", "Tons de Cinza", "Negativo", "Sépia", "Ajustar Brilho e Contraste", "Detecção de Bordas (Sobel)")
+
+
+        // Adaptador para o Spinner
+        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, filterOptions)
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+
+        filtersSpinner.adapter = adapter
+
+        // Listener para o botão "Filtros"
+        filtersButton.setOnClickListener {
+            // Toggle a visibilidade do Spinner
+            if (filtersSpinner.visibility == View.VISIBLE) {
+                filtersSpinner.visibility = View.GONE
+            } else {
+                filtersSpinner.visibility = View.VISIBLE
+            }
+        }
+
+        // Listener para o Spinner de filtros
+        filtersSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                // Aqui você pode adicionar lógica para aplicar o filtro selecionado
+                // Por exemplo, chame um método para aplicar o filtro com base na posição selecionada
+                //applyFilter(position)
+                // Oculte o Spinner após a seleção
+                filtersSpinner.visibility = View.GONE
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) {
+                // Nada a fazer aqui
+            }
+        }
+
+        mainBinding.flipCameraIB.setOnClickListener {
+            lensFacing = if (lensFacing == CameraSelector.LENS_FACING_FRONT) {
+                CameraSelector.LENS_FACING_BACK
+            } else {
+                CameraSelector.LENS_FACING_FRONT
+            }
+            bindCameraUserCase()
+        }
+        mainBinding.captureIB.setOnClickListener {
+            takePhoto()
+        }
+        mainBinding.flashToggleIB.setOnClickListener {
+            setFlashIcon(camera)
+        }
     }
 
 
