@@ -33,8 +33,7 @@ Contributions are welcome! If you'd like to contribute to the development of thi
 Fork the repository.
 Make your changes.
 Submit a pull request detailing the changes you've made.
-License
-This project is licensed under the [License Name]. See the LICENSE file for details.
+
 
 Enjoy capturing moments with the Camera App! If you have any suggestions for improvements or new features, don't hesitate to reach out.
 
