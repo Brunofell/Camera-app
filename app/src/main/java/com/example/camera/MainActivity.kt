@@ -44,6 +44,7 @@ class MainActivity : AppCompatActivity() {
             // android.Manifest.permission.RECORD_AUDIO
         )
     } else {
+
         arrayListOf(
             android.Manifest.permission.CAMERA,
             // android.Manifest.permission.RECORD_AUDIO,
